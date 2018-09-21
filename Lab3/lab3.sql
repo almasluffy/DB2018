@@ -1,5 +1,7 @@
 CREATE DATABASE lab3;
 
+-- copied part
+
 CREATE TABLE departments (
   code INTEGER PRIMARY KEY,
   name VARCHAR(255) NOT NULL ,
@@ -23,7 +25,7 @@ CREATE TABLE customers (
 
 );
 
-INSERT INTO departments(code,name,budget) VALUES(17,'IT',65000);
+INSERT INTO departments(code,name,budget) VALUES(14,'IT',65000);
 INSERT INTO departments(code,name,budget) VALUES(37,'Accounting',15000);
 INSERT INTO departments(code,name,budget) VALUES(59,'Human Resources',240000);
 INSERT INTO departments(code,name,budget) VALUES(77,'Research',55000);
@@ -53,38 +55,46 @@ INSERT INTO customers(name,lastname, city) VALUES('Eric','Gomez', 'Shymkent');
 INSERT INTO customers(name,lastname, city) VALUES('Elizabeth','Tailor', 'Almaty');
 INSERT INTO customers(name,lastname, city) VALUES('Julia','Adams', 'Astana');
 
+-- copied part ends
+
 SELECT lastname FROM employees;
 
-SELECT DISTINCT ON(lastname) * FROM employees;
+SELECT DISTINCT ON(lastname) lastname FROM employees;
 
 SELECT * FROM employees WHERE lastname = 'Smith';
 
-SELECT * FROM employees WHERE lastname = 'Smith' OR lastname = 'Doe';
+SELECT * FROM employees
+  WHERE lastname = 'Smith'
+    UNION SELECT * FROM employees WHERE lastname = 'Doe';
 
 SELECT * FROM employees WHERE department = 14;
 
-SELECT * FROM employees WHERE department = 37 OR department = 77;
+SELECT * FROM employees
+  WHERE department = 37
+    UNION SELECT * FROM employees WHERE department = 77;
 
-SELECT sum(budget) FROM departments;
+SELECT sum(budget) AS budget_sum FROM departments;
 
-SELECT department, count(*) FROM employees GROUP BY department;
+SELECT department, count(employees) FROM employees GROUP BY department;
 
-SELECT department FROM employees GROUP BY department HAVING count(*) > 2;
+SELECT department FROM employees GROUP BY department HAVING count(employees) > 2;
 
 SELECT name FROM departments ORDER BY budget DESC LIMIT 1 OFFSET 1;
 
-SELECT name, lastname FROM employees WHERE department = (SELECT code FROM departments ORDER BY budget ASC LIMIT 1);
+SELECT name, lastname FROM employees
+  WHERE department = (SELECT code FROM departments ORDER BY budget LIMIT 1);
 
-SELECT name FROM employees WHERE city = 'Almaty' UNION ALL SELECT name from customers WHERE city = 'Almaty';
+SELECT name FROM employees WHERE city = 'Almaty'
+  UNION SELECT name FROM customers WHERE city = 'Almaty';
 
-SELECT name FROM departments WHERE budget > 60000 ORDER BY budget ASC, code DESC;
+SELECT * FROM departments WHERE budget > 60000 ORDER BY budget, code DESC;
 
-UPDATE departments SET budget = budget - budget * 0.1 WHERE budget = (SELECT budget FROM departments ORDER BY budget ASC LIMIT 1) RETURNING *;
+UPDATE departments SET budget = budget * 0.9
+  WHERE budget = (SELECT budget FROM departments ORDER BY budget LIMIT 1);
 
-UPDATE employees SET department = 14 WHERE department = 77 RETURNING *;
+UPDATE employees SET department = (SELECT code FROM departments WHERE name = 'IT')
+  WHERE department = (SELECT code FROM departments WHERE name = 'Research');
 
-DELETE FROM employees AS e WHERE e.department = 14;
+DELETE FROM employees WHERE department = (SELECT code FROM departments WHERE name = 'IT');
 
-DELETE FROM employees *;
-
-SELECT * FROM employees;
+DELETE FROM employees;
